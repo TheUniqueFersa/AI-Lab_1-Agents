@@ -43,12 +43,16 @@ function crearTablero(contenedor, prefijoJugador, permiteClick, player) {
 // human player
 const player = new Battleship_Agent("Fersa", 0);
 const bot = new Battleship_GBA(1);
+new Battleship_SRA(1)
+new Battleship_ABAOP(1)
 crearTablero(tableroJugador1, 'p1', true, player);
 crearTablero(tableroJugador2, 'p2', false);
 
 const turns = [player, bot];
 const PlayerA = player;
 const PlayerB = bot;
+
+
 
 
 //game();

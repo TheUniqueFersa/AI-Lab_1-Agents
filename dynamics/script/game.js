@@ -301,6 +301,7 @@ class Battleship_Agent {
         //console.log(x, y);
         console.log(this.grid[x][y])
         let pixel_symbol = this.grid[x][y];
+
         return this.fleet_symbols.includes(pixel_symbol); //0 if is a miss, 1 if is a hit
     }
     check_sunk(){
@@ -527,7 +528,7 @@ class Battleship_GBA extends Battleship_Agent{
         y += compass_points.get(try_direction)[1];
         if(this.is_a_valid_coord(x, y)){
             let coord_of_try = this.map_grid_to_coord.get(this.stringyfyCoord(x, y));
-            if(this.is_hit_or_miss(coord_of_try) && is_not_discovered_yet(coord_of_try)){
+            if(this.is_hit_or_miss(coord_of_try)){
                 this.hit(coord_of_try);
                 if(!this.bool_locked_direction){
                     if(this.index_of_prox_directions_in_target == 0){

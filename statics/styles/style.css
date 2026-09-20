@@ -2,6 +2,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    color: #d8dde8;
 }
 
 
@@ -12,7 +13,7 @@ main{
     flex-direction: column;
     width: 100vw;
     height: 100vh;
-    background-color: rgb(172, 217, 217);
+    background-color: #023E7D;
 }
 #title_id{
     

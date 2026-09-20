@@ -17,16 +17,23 @@ function crearTablero(contenedor, prefijoJugador, permiteClick, player) {
 
       casilla.classList.add('interactiva');
       casilla.addEventListener('click', function() {
-        const idCompleto = this.id;
-        const m = this.dataset.m;
-        print(m);
-        player.hunt(m)
+        if(TURN == player.turn && player.is_not_discovered_yet(m)){ //only if turn is my turn
+          const idCompleto = this.id;
+          const m = this.dataset.m;
+          print(m);
+          player.hunt(m);
+          player.player_status();
+          
+          //const numeroCasilla = idCompleto.split('-')[1];       
+          //console.log(`Clic en la casilla ID: ${idCompleto}, Posición: ${numeroCasilla}`);
+          
+    
+          this.style.backgroundColor = '#e74c3c'; 
+          TURN = toogle_turn(TURN);
+          turns[toogle_turn(player.turn)].continue();
+          
+        }
         
-        //const numeroCasilla = idCompleto.split('-')[1];       
-        //console.log(`Clic en la casilla ID: ${idCompleto}, Posición: ${numeroCasilla}`);
-        
-  
-        this.style.backgroundColor = '#e74c3c'; 
       });
     }
 
@@ -34,8 +41,8 @@ function crearTablero(contenedor, prefijoJugador, permiteClick, player) {
   }
 }
 // human player
-const player = new Battleship_Agent();
-const bot = new Battleship_SRA();
+const player = new Battleship_Agent("Fersa", 0);
+const bot = new Battleship_GBA(1);
 crearTablero(tableroJugador1, 'p1', true, player);
 crearTablero(tableroJugador2, 'p2', false);
 
@@ -43,21 +50,5 @@ const turns = [player, bot];
 const PlayerA = player;
 const PlayerB = bot;
 
-function game(){
-    while(game_continues()){
-        if(turn){ // 1: Player B
-          if(PlayerB.getAUTO() === true){
-            PlayerB.continue();
-          }
-        }
-        else {  // 0: Player A
-          if(PlayerA.getAUTO() === true){
-            PlayerA.continue();
-          }
-        }
-        turn = toogle_turn();
-    }
-    print(`The player: '${winner.name}' WINS!!`);
-}
 
 //game();

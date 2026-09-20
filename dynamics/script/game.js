@@ -2,6 +2,13 @@
 let turn = 0; // 0, 1
 
 // priv. UPPER
+const SHIPS = new Map([
+    ['A', "Aircraft"],
+    ['B', "Battleship"],
+    ['S', "Submarine"],
+    ['C', "Cruiser"],
+    ['D', "Destroyer"]
+]);
 
 const compass_points = new Map();
 compass_points.set("N", [-1, 0]);
@@ -19,16 +26,21 @@ function getRandom(min, max) {
 
 class Battleship_Agent {
     #N = 100;
-    constructor(x = 10, y = 10){
+    #MOVES = 0;
+    #STATUS = "HUNT";
+    #T = 0;
+    constructor(x = 10, y = 10, t = 2000){
         this.grid_x_size = x;
         this.grid_y_size = y;
-
+        this.#T = t;
         this.grid;
+        this.current_target = null;
         this.avail_moves = []; // with the form of a coord: A10
         this.map_grid_to_coord = new Map();
         this.map_coord_to_grid = new Map();
         this.fleet = [2, 3, 3, 4, 5];
         this.fleet_symbols = ['A', 'B', 'S', 'C', 'P'];
+        
         this.map_fleet = new Map([
             ['A', 0],
             ['B', 0],
@@ -43,10 +55,28 @@ class Battleship_Agent {
             ['C', 3],
             ['P', 2]
         ]);
+        this.timer = null;
         this.#init_grid(x, y);
         this.#init_grid_map(x, y);
         this.#generate_fleet_locations();
         
+    }
+    #stop_timer(){
+        if(this.timer){
+            clearTimeout(this.timer);
+            this.timer = null;
+            console.log("Timer stopped");
+        }
+    }
+    #init_timer(f){
+        if(this.timer){
+            this.#stop_timer();
+        }
+        console.log("Timer start");
+        this.timer = setTimeout(() => {
+            f();
+            this.#stop_timer();
+        }, this.#T);
     }
     #init_grid(x, y){
         this.grid = Array.from({length: x}, () => Array(y).fill('o'));
@@ -87,6 +117,7 @@ class Battleship_Agent {
             this.grid[x][y] = symbol;
         }
     }
+    
     #generate_fleet_locations(){
         // Aircraft
         let symbol = 'A';
@@ -117,18 +148,49 @@ class Battleship_Agent {
             console.log(row[i]);
         }
     }
-    //to override
-    hunt(){
+    nextValidMove(){
         //super naive implementation
         let size_of_availables = this.grid_x_size*this.grid_y_size;
         let m = getRandom(0, size_of_availables);
         return this.avail_moves[m];
+    }
+    setSTATUS(status){
+        this.#STATUS = status;
+    }
+    //to override
+    hunt(next_target = null){
+        //this.setSTATUS("HUNT");
+        if(next_target === null){
+            next_target = this.nextValidMove();    
+        }
+        console.log(next_target);
+        //console.log(this.is_hit_or_miss(next_target));
+
+        
+        if(this.is_hit_or_miss(next_target)){ //first hit
+            this.hit(next_target);
+            this.current_target = next_target;
+            //this.setSTATUS("TARGET");
+        } else {
+            this.miss(next_target);
+        }
+
+        
     }
     target(){
 
     }
     recalc(){
 
+    }
+    valid_move(m){
+        this.#N--;
+        this.#MOVES++;
+        //delete the coord to avoid looping (SRA definition)
+        let index = this.avail_moves.indexOf(m);
+        if(index !== -1){
+            this.avail_moves.splice(index, 1);
+        }
     }
     //for all functoins, m has the form of a coord
     is_hit_or_miss(m){
@@ -139,38 +201,81 @@ class Battleship_Agent {
         let pixel_symbol = this.grid[x][y];
         return this.fleet_symbols.includes(pixel_symbol); //0 if is a miss, 1 if is a hit
     }
+    check_sunk(){
+        
+        for(const symbol of this.fleet_symbols){
+            
+            let terminal_fleed_value = this.map_fleet_terminal.get(symbol);
+            let actual_fleed_value = this.map_fleet.get(symbol);
+            
+            return (actual_fleed_value == terminal_fleed_value) //1 if there is a new SUNK!!
+        }
+    }
+    sunk(symbol){
+        let name_of_ship = SHIPS.get(symbol)
+        console.log(`${name_of_ship} has been SUNK!!`);
+        //DESIGN 
+        setTimeout(()=>{
+            let index_sym = this.fleet_symbols.indexOf(symbol);
+
+            let terminal_value_for_symbol_of_m = this.map_fleet_terminal.get(symbol);
+            let index_fleet = this.fleet.indexOf(terminal_value_for_symbol_of_m);
+            this.fleet_symbols.splice(index_sym, 1);
+            this.fleet.splice(index_fleet, 1);
+
+            //this.setSTATUS("RECALC");
+
+        }, this.#T);
+        
+    }
     hit(m){
         let [x, y] = this.map_coord_to_grid.get(m);
         this.grid[x][y] = 'X';
+        
+        let symbol_of_m = this.grid[x][y];
 
-        //take out the coord to avoid looping (SRA definition)
-        let index = this.avail_moves.indexOf(m);
-        if(index !== -1){
-            this.avail_moves.splice(index, 1);
+        //Increment the value of the number of strikes for each ship
+        let prev_fleet_value_for_m = this.map_fleet.get(symbol_of_m);
+        this.map_fleet.set(symbol_of_m, prev_fleet_value_for_m+1);
+
+        if(this.check_sunk()){ // SUNK!
+            this.sunk(symbol_of_m);    
         }
-        this.#N --;
+        
+        this.valid_move(m);
+    }
+    miss(m){
+        let [x, y] = this.map_coord_to_grid.get(m);
+        this.grid[x][y] = 'M';
+
+        this.valid_move(m);
+    }
+    continue(){
+
+        console.log(this.getN());
+        this.print_grid();
+        this.printAvailableMoves();
+
+
+        if(this.#STATUS == "HUNT"){
+            this.#init_timer(() => this.hunt());
+        } else if(this.#STATUS == "TARGET"){
+            this.#init_timer(this.target);
+        } else if(this.#STATUS == "RECALC"){
+            this.#init_timer(this.recalc);
+        }
 
         //tests:
         console.log(this.getN());
         this.print_grid();
         this.printAvailableMoves();
-    }
-    miss(m){
 
-    }
-    continue(){
-        let next_target = this.hunt();
-        console.log(next_target);
-        //console.log(this.is_hit_or_miss(next_target));
-        if(this.is_hit_or_miss(next_target)){
-            this.hit(next_target);
-        } else {
-            this.miss(next_target);
-        }
+
     }
     getN(){
         return this.#N;
     }
+    
     printAvailableMoves(){
         console.log(this.avail_moves)
     }
@@ -185,14 +290,21 @@ class Battleship_SRA extends Battleship_Agent{
         this.name = name;
         
     }
-    hunt(){
+    nextValidMove(){
         let size_of_availables = this.avail_moves.length;
         let m = getRandom(0, size_of_availables);
         console.log(m);
         return this.avail_moves[m];
     }
+    /*
+    hunt(){
+        
+    }
+    */
     target(){
-        //stays empty
+
+
+
     }
     recalc(){
         //stays empty
@@ -201,11 +313,11 @@ class Battleship_SRA extends Battleship_Agent{
 }
 let prueba = new Battleship_SRA();
 //console.log(prueba.grid);
-prueba.print_grid()
-console.log(prueba.avail_moves);
-console.log(prueba.map_coord_to_grid);
+//prueba.print_grid()
 //prueba.print_map_to_coord();
 prueba.continue();
+//console.log(prueba.avail_moves);
+//console.log(prueba.map_coord_to_grid);
 
 class Battleship_GBA extends Battleship_Agent{
     //Goal Base Agent

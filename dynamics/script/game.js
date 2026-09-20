@@ -1,6 +1,6 @@
 
 let turn = 0; // 0, 1
-
+let winner = null;
 // priv. UPPER
 const SHIPS = new Map([
     ['A', "Aircraft"],
@@ -9,7 +9,9 @@ const SHIPS = new Map([
     ['C', "Cruiser"],
     ['D', "Destroyer"]
 ]);
-
+function print(a){
+    console.log(a)
+}
 const compass_points = new Map();
 compass_points.set("N", [-1, 0]);
 compass_points.set("E", [0, 1]);
@@ -40,7 +42,9 @@ class Battleship_Agent {
     #MOVES = 0;
     #STATUS = "HUNT";
     #T = 0;
-    constructor(x = 10, y = 10, t = 1000){
+    #AUTO;
+    constructor(name = "Bot", auto = false, x = 10, y = 10, t = 1000){
+        this.name = name;
         this.grid_x_size = x;
         this.grid_y_size = y;
         this.#T = t;
@@ -51,7 +55,8 @@ class Battleship_Agent {
         this.map_grid_to_coord = new Map();
         this.map_coord_to_grid = new Map();
         this.fleet = [2, 3, 3, 4, 5];
-        this.fleet_symbols = ['A', 'B', 'S', 'C', 'P'];
+        this.fleet_symbols = ['A', 'B', 'S', 'C', 'D'];
+        this.#AUTO = auto;
 
         this.prox_directions = ["U", "R", "D", "L"];
         this.bool_locked_direction = false;
@@ -61,14 +66,14 @@ class Battleship_Agent {
             ['B', 0],
             ['S', 0],
             ['C', 0],
-            ['P', 0]
+            ['D', 0]
         ]);
         this.map_fleet_terminal = new Map([
             ['A', 5],
             ['B', 4],
             ['S', 3],
             ['C', 3],
-            ['P', 2]
+            ['D', 2]
         ]);
         this.timer = null;
         this.#init_grid(x, y);
@@ -126,7 +131,7 @@ class Battleship_Agent {
         }
     }
     draw_ship(init, size, direction, symbol) {
-        console.log(init, size, direction, symbol);
+        //console.log(init, size, direction, symbol);
         // The firs iteration validate if it gets out of boundaries and if it is occupied
         let valid = true;
         let [x, y] = init;
@@ -213,29 +218,51 @@ class Battleship_Agent {
     nextValidMove(){
         //super naive implementation
         let size_of_availables = this.grid_x_size*this.grid_y_size;
-        let m = getRandom(0, size_of_availables);
+        let m = getRandom(0, size_of_availables-1);
         return this.avail_moves[m];
     }
     stringyfyCoord(i, j){
         return `${i},${j-1}`;
     }
+    //returns 1 if the target was not discovered yet, 0 otherwise (meaning is a repeated target)
+    is_not_discovered_yet(m){
+        
+        let [x,y] = this.map_coord_to_grid.get(m)
+        let sym = this.grid[x][y];
+        let terminals = ["X"];
+        for(const [key, value] of this.map_fleet_terminal.entries()){
+            terminals.push(key.toLowerCase());
+        }
+        print(terminals.indexOf(sym));
+        if(terminals.indexOf(sym) == -1) return 1
+        else return 0;
+
+    }
     //to override
     hunt(next_target = null){
-        this.setSTATUS("HUNT");
-        if(next_target === null){
-            next_target = this.nextValidMove();    
+        if(this.getAUTO()){
+            this.setSTATUS("HUNT");
+            if(next_target === null){//redundant
+                do{
+                    next_target = this.nextValidMove();
+                }while(!this.is_not_discovered_yet(next_target));
+            }
         }
         console.log(next_target);
         //console.log(this.is_hit_or_miss(next_target));
 
-        
-        if(this.is_hit_or_miss(next_target)){ //first hit
-            this.hit(next_target);
-            this.current_target = next_target;
-            //this.setSTATUS("TARGET");
-        } else {
-            this.miss(next_target);
+        if(this.is_not_discovered_yet(next_target)){
+            if(this.is_hit_or_miss(next_target)){
+                this.hit(next_target);
+                this.current_target = next_target;
+                if(this.getAUTO()){
+                    this.setSTATUS("TARGET");
+                }
+            } else {
+                this.miss(next_target);
+            }
         }
+        
 
         
     }
@@ -243,7 +270,7 @@ class Battleship_Agent {
 
     }
     recalc(){
-
+        return (this.fleet.length == 0) // 1 if the game is over, 0 otherwise
     }
     valid_move(m){
         this.#N--;
@@ -270,8 +297,10 @@ class Battleship_Agent {
             let terminal_fleed_value = this.map_fleet_terminal.get(symbol);
             let actual_fleed_value = this.map_fleet.get(symbol);
             
-            return (actual_fleed_value == terminal_fleed_value) //1 if there is a new SUNK!!
+            if(actual_fleed_value == terminal_fleed_value)
+                return (actual_fleed_value == terminal_fleed_value) //1 if there is a new SUNK!!
         }
+        return false;
     }
     sunk(symbol){
         let name_of_ship = SHIPS.get(symbol)
@@ -285,16 +314,23 @@ class Battleship_Agent {
             this.fleet_symbols.splice(index_sym, 1);
             this.fleet.splice(index_fleet, 1);
 
-            this.setSTATUS("RECALC");
+            if(this.getAUTO()){
+                this.setSTATUS("RECALC");
+            } else{
+                if(this.recalc()){
+                    winner = this;
+                }
+            }
 
         }, this.#T);
         
     }
     hit(m){
         let [x, y] = this.map_coord_to_grid.get(m);
-        this.grid[x][y] = 'X';
+        let to_lower_symbol = this.grid[x][y].toLowerCase()
+        this.grid[x][y] = to_lower_symbol;
         
-        let symbol_of_m = this.grid[x][y];
+        let symbol_of_m = this.grid[x][y].toUpperCase();
 
         //Increment the value of the number of strikes for each ship
         let prev_fleet_value_for_m = this.map_fleet.get(symbol_of_m);
@@ -308,17 +344,16 @@ class Battleship_Agent {
     }
     miss(m){
         let [x, y] = this.map_coord_to_grid.get(m);
-        this.grid[x][y] = 'M';
+        this.grid[x][y] = 'X';
 
         this.valid_move(m);
     }
-    continue(){
-
+    player_status(){
         console.log(this.getN());
         this.print_grid();
         this.printAvailableMoves();
-
-
+    }
+    continue(){
         if(this.#STATUS == "HUNT"){
             this.#init_timer(() => this.hunt());
         } else if(this.#STATUS == "TARGET"){
@@ -326,19 +361,17 @@ class Battleship_Agent {
         } else if(this.#STATUS == "RECALC"){
             this.#init_timer(this.recalc);
         }
-
         //tests:
-        console.log(this.getN());
-        this.print_grid();
-        this.printAvailableMoves();
-
-
+        this.player_status();
     }
     setSTATUS(status){
         this.#STATUS = status;
     }
     getN(){
         return this.#N;
+    }
+    getAUTO(){
+        return this.#AUTO;
     }
     
     printAvailableMoves(){
@@ -357,14 +390,12 @@ class Battleship_SRA extends Battleship_Agent{
     //Simple Reflex Agent
 
     //modify to support NxM size of grid
-    constructor(name = "Simple Reflex Agent"){
-        super()
-        this.name = name;
-        
+    constructor(name = "Simple Reflex Agent", auto = true){
+        super(name, auto)
     }
     nextValidMove(){
         let size_of_availables = this.avail_moves.length;
-        let m = getRandom(0, size_of_availables);
+        let m = getRandom(0, size_of_availables-1);
         console.log(m);
         return this.avail_moves[m];
     }
@@ -375,10 +406,10 @@ class Battleship_SRA extends Battleship_Agent{
     */
     target(){
         //STAYS EMPTy
-    }
+    }/*
     recalc(){
-        //stays empty
-    }
+        
+    }*/
     
 }
 let prueba = new Battleship_SRA();
@@ -393,9 +424,8 @@ class Battleship_GBA extends Battleship_Agent{
     //Goal Base Agent
     #PARITY = 2;
     //modify to support NxM size of grid
-    constructor(name = "Simple Reflex Agent"){
-        super()
-        this.name = name;
+    constructor(name = "Simple Reflex Agent", auto = true){
+        super(name, auto)
         this.decision_grid;
         this.#init_decision_grid();
         this.#update_parity();
@@ -405,7 +435,7 @@ class Battleship_GBA extends Battleship_Agent{
     }
     nextValidMove(){
         let size_of_availables = this.avail_moves.length;
-        let m = getRandom(0, size_of_availables);
+        let m = getRandom(0, size_of_availables-1);
         console.log(m);
         return this.avail_moves[m];
     }
@@ -448,6 +478,15 @@ class Battleship_GBA extends Battleship_Agent{
             }
         });
         
+    }
+    player_status(){
+        //console.log(this.getN());
+        print("GRID:")
+        this.print_grid();
+        print("DESICION GRID")
+        this.print_decision_grid();
+        print("AVAILABLE MOVES")
+        this.printAvailableMoves();
     }
 /*
     hunt(){
@@ -495,17 +534,21 @@ class Battleship_GBA extends Battleship_Agent{
     }
 }
 let prueba2 = new Battleship_GBA();
-
-prueba2.continue();
+/*
+print("INITIAL GRIDS:");
+prueba2.print_grid();
+print("------------------------");
 prueba2.print_decision_grid();
+print("------------------------");
+prueba2.continue();*/
+//prueba2.print_decision_grid();
 
 class Battleship_ABAOP extends Battleship_Agent{
     //Agent Based on Achieveing Optimal Performance
 
     //modify to support NxM size of grid
-    constructor(name = "Simple Reflex Agent"){
-        super()
-        this.name = name;
+    constructor(name = "Simple Reflex Agent", auto = true){
+        super(name, auto)
     }
     hunt(){
         //prob function: top most
@@ -517,9 +560,9 @@ class Battleship_ABAOP extends Battleship_Agent{
         //recalc all board: new probability function
     }
 }
-let game_status = "INIT";
+
 function game_continues(){
-    if(game_status != "END")
+    if(winner == null)
         return 1;
     else return 0;
 }
@@ -527,17 +570,3 @@ function toogle_turn(){
     if (turn) return 0;
     else return 1;
 }
-function game(){
-    const PlayerA = new Battleship_SRA;
-    const PlayerB = new Battleship_GBA;
-    while(game_continues()){
-        if(turn){ // 1: Player B
-            PlayerB.continue();
-        }
-        else {  // 0: Player A
-            PlayerA.continue();
-        }
-        turn = toogle_turn();
-    }
-}
-//game();

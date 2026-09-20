@@ -110,36 +110,80 @@ class Battleship_Agent {
         }
     }
     draw_ship(init, size, direction, symbol) {
-        let [x, y] = init
+        console.log(init, size, direction, symbol);
+        // The firs iteration validate if it gets out of boundaries and if it is occupied
+        let valid = true;
+        let [x, y] = init;
         for(let i = 0; i<size; i++){
+            const out_of_grid = x<0 || x>=this.grid_x_size || y<0 || y>=this.grid_y_size; 
+            if(out_of_grid){
+                return false;
+            }
+            if(this.grid[x][y] !== 'o'){
+                return false;
+            }
             x += compass_points.get(direction)[0];
             y += compass_points.get(direction)[1];
-            this.grid[x][y] = symbol;
         }
+        
+        // The second iteration only add the ship on grid
+        [x, y] = init
+        for(let i = 0; i<size; i++){
+            this.grid[x][y] = symbol;
+            x += compass_points.get(direction)[0];
+            y += compass_points.get(direction)[1];
+        }
+        return true;
     }
-    
+
+    //Random number [0,9]
+    #random_start_pixel(){
+        return [Math.floor(Math.random() * this.grid_x_size), Math.floor(Math.random() * this.grid_y_size)];
+    }
+    #random_direction(){
+        let direction = ["N", "E", "S", "W", "U", "R", "D", "L"];
+        return direction[Math.floor(Math.random() * (7+0))]; // Random number [0,7]
+    }    
     #generate_fleet_locations(){
-        // Aircraft
+        //in order to can recalculate, draw_ship must return a boolean
         let symbol = 'A';
         let start_pixel = [1, 3];
-        let ship_size = 5
+        let ship_size = 5;        
+        let ship_calculated_bool;
+        // Aircraft
         //randomize this
-        this.draw_ship(start_pixel, ship_size, "E", symbol);
+        [ship_size, symbol] = [5, 'A'];
+        do {
+            ship_calculated_bool = this.draw_ship(this.#random_start_pixel(), ship_size, this.#random_direction(), symbol);
+        } while (!ship_calculated_bool);
 
         // Battleship
-        [start_pixel, ship_size, symbol] = [[6, 1], 4, 'B'];
-        this.draw_ship(start_pixel, ship_size, "N", symbol);
+        [ship_size, symbol] = [4, 'B'];
+        do {
+            ship_calculated_bool = this.draw_ship(this.#random_start_pixel(), ship_size, this.#random_direction(), symbol);
+            
+        } while (!ship_calculated_bool);
         // Submarine
-        [start_pixel, ship_size, symbol] = [[5, 5], 3, 'S'];
-        this.draw_ship(start_pixel, ship_size, "R", symbol);
+        [ship_size, symbol] = [3, 'S'];
+        do {
+             ship_calculated_bool = this.draw_ship(this.#random_start_pixel(), ship_size, this.#random_direction(), symbol);
+            
+        } while (!ship_calculated_bool);
         // Cruiser
-        [start_pixel, ship_size, symbol] = [[6, 1], 3, 'C'];
-        this.draw_ship(start_pixel, ship_size, "D", symbol);
+        [ship_size, symbol] = [3, 'C'];
+        do {
+             ship_calculated_bool = this.draw_ship(this.#random_start_pixel(), ship_size, this.#random_direction(), symbol);
+            
+        } while (!ship_calculated_bool);
         // Destroyer
-        [start_pixel, ship_size, symbol] = [[0, 6], 2, 'D'];
-        this.draw_ship(start_pixel, ship_size, "L", symbol);
+        [ship_size, symbol] = [2, 'D'];
+        do {
+             ship_calculated_bool = this.draw_ship(this.#random_start_pixel(), ship_size, this.#random_direction(), symbol);
+            
+        } while (!ship_calculated_bool);
     }
     print_grid(){
+        // Print grid in command, and also reload the interface
         let row = new Array(this.grid_x_size).fill("");
         for(let i=0; i< this.grid_x_size; i++){
             for(let j=0; j<this.grid_y_size; j++){
@@ -147,6 +191,8 @@ class Battleship_Agent {
             }
             console.log(row[i]);
         }
+
+
     }
     nextValidMove(){
         //super naive implementation

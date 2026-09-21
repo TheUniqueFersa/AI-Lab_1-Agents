@@ -50,6 +50,8 @@ new Battleship_SRA(1)
 new Battleship_ABAOP(1)
 crearTablero(tableroJugador1, 'p1', true, player);
 crearTablero(tableroJugador2, 'p2', false, bot);
+player.draw_visual_grid();
+bot.draw_visual_grid();
 
 const turns = [player, bot];
 const PlayerA = player;

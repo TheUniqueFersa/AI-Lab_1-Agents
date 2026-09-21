@@ -56,7 +56,7 @@ main {
 }
 .casilla { background-color: rebeccapurple; }
 .interactiva { cursor: pointer; }
-.interactiva:hover { background-color: #953737; }
+/*.interactiva:hover { background-color: #953737; }*/
 
 /* ---------- decision grid ---------- */
 .toggle_decision { display: none; min-height: 44px; border: 2px solid #000; border-radius: 10px;
@@ -119,9 +119,9 @@ main {
   cursor: pointer;
 }
 
-.interactiva:hover {
+/*.interactiva:hover {
   background-color: #033d77; 
-}
+}*/
 
 
 

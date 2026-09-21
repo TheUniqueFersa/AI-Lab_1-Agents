@@ -112,9 +112,11 @@ class Battleship_Agent {
                     casilla.classList.add('miss')
                 }else if(symbol === symbol.toLowerCase()){
                     // golpeado, siempre se muestra (fue descubierto)
-                    casilla.classList.add(`ship-${symbol.toUpperCase()}`, 'hit');
+                        casilla.classList.add(`ship-${symbol.toUpperCase()}`, 'hit');
                 }else{
-                    casilla.classList.add(`ship-${symbol}`);
+                    if(this.#AUTO){
+                        casilla.classList.add(`ship-${symbol}`);
+                    }
                 }
             }
         }
@@ -554,7 +556,7 @@ class Battleship_GBA extends Battleship_Agent{
         print("AVAILABLE MOVES")
         this.printAvailableMoves();
         print("---------------");
-        if(this.decision_view) this.decision_view.refresh();
+        //if(this.decision_view) this.decision_view.refresh();
     }
 /*
     hunt(){

@@ -9,21 +9,21 @@ const $ = id => document.getElementById(id);
 //  Boards (same as before, but a click now goes through the Game object)
 // ------------------------------------------------------------------
 function crearTablero(contenedor, prefijoJugador, permiteClick, player, game){
+    player.visual_grid = contenedor;
+    player.prefix_board = prefijoJugador;      // NEW: 'p1' / 'p2', must match the ids below
+
     for(let i = 0; i < 100; i++){
         const casilla = document.createElement('div');
         casilla.classList.add('casilla');
         casilla.id = `${prefijoJugador}-${i}`;
 
         let [x, y] = [Math.floor(i / 10), i % 10];
-        player.visual_grid = contenedor;
         if(permiteClick){
             let m = player.map_grid_to_coord.get(player.stringyfyCoord(x, y));
             casilla.dataset.m = m;
             casilla.classList.add('interactiva');
             casilla.addEventListener('click', function(){
-                if(game.human_shot(player, this.dataset.m)){
-                    this.style.backgroundColor = '#e74c3c';
-                }
+                game.human_shot(player, this.dataset.m);     // no inline colour any more (see point 3)
             });
         }
         contenedor.appendChild(casilla);
@@ -43,6 +43,8 @@ function build_view(game){
         if(typeof a.draw_visual_grid === "function") a.draw_visual_grid();
         if(a.decision_view) a.decision_view.refresh();
     };
+    game.on_shot(0);      // initial draw: ships of the bots + empty decision grids
+    game.on_shot(1);
 }
 
 // ------------------------------------------------------------------

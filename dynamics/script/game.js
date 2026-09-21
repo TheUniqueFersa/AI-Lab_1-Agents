@@ -59,6 +59,7 @@ class Battleship_Agent {
         this.map_coord_to_grid = new Map();
         this.fleet = [2, 3, 3, 4, 5];
         this.fleet_symbols = ['A', 'B', 'S', 'C', 'D'];
+        this.visual_grid = null;
         
 
         this.prox_directions = ["U", "R", "D", "L"];
@@ -84,6 +85,10 @@ class Battleship_Agent {
         this.#generate_fleet_locations();
         
     }
+    //GRAPHIC
+    draw_visual_grid(){
+        //this.visual_grid
+    }
     //only occurs when is a Bot
     #stop_timer(){
         if(this.timer){
@@ -105,6 +110,7 @@ class Battleship_Agent {
             f();
             if(this.getAUTO()){
                 print(TURN);
+                this.draw_visual_grid();
                 TURN = toogle_turn(TURN);
                 print(TURN);
             }
@@ -235,7 +241,7 @@ class Battleship_Agent {
         return this.avail_moves[m];
     }
     stringyfyCoord(i, j){
-        return `${i},${j-1}`;
+        return `${i},${j}`;
     }
     //returns 1 if the target was not discovered yet, 0 otherwise (meaning is a repeated target)
     is_not_discovered_yet(m){
@@ -317,31 +323,21 @@ class Battleship_Agent {
         return false;
     }
     sunk(symbol){
-        let name_of_ship = SHIPS.get(symbol)
-        console.log(`${name_of_ship} has been SUNK!!`);
-        //DESIGN 
-        setTimeout(()=>{
-            let index_sym = this.fleet_symbols.indexOf(symbol);
+    console.log(`${SHIPS.get(symbol)} has been SUNK!!`);
 
-            let terminal_value_for_symbol_of_m = this.map_fleet_terminal.get(symbol);
-            let index_fleet = this.fleet.indexOf(terminal_value_for_symbol_of_m);
-            this.fleet_symbols.splice(index_sym, 1);
-            this.fleet.splice(index_fleet, 1);
+    let index_sym = this.fleet_symbols.indexOf(symbol);
+    let index_fleet = this.fleet.indexOf(this.map_fleet_terminal.get(symbol));
+    this.fleet_symbols.splice(index_sym, 1);
+    this.fleet.splice(index_fleet, 1);
 
-            
-            if(this.recalc()){
-                winner = this;
-                alert(`The player: '${winner.name}' WINS!!`);
-            } else {
-                if(this.getAUTO()){
-                    this.setSTATUS("RECALC");
-                }
-            }
-            
-
-        }, this.#T);
-        
+    if(this.getAUTO()){
+        this.setSTATUS("HUNT"); // default; recalc() may switch it back to TARGET
     }
+    if(this.recalc()){
+        winner = this;
+        alert(`The player: '${winner.name}' WINS!!`);
+    }
+}
     hit(m){
         let [x, y] = this.map_coord_to_grid.get(m);
         let to_lower_symbol = this.grid[x][y].toLowerCase()
@@ -447,9 +443,10 @@ class Battleship_GBA extends Battleship_Agent{
     //Goal Base Agent
     #PARITY = 2;
     //modify to support NxM size of grid
-    constructor(turn, name = "Simple Reflex Agent", auto = true){
+    constructor(turn, name = "Goal Based Agent", auto = true){
         super(name, turn, auto)
         this.decision_grid;
+        this.frontier = null; //last cell hit in the direction being explored
         this.#init_decision_grid();
         this.#update_parity();
     }
@@ -457,10 +454,10 @@ class Battleship_GBA extends Battleship_Agent{
         this.decision_grid = Array.from({length: x}, () => Array(y).fill(0));
     }
     nextValidMove(){
-        let size_of_availables = this.avail_moves.length;
-        let m = getRandom(0, size_of_availables-1);
-        console.log(m);
-        return this.avail_moves[m];
+        if(this.avail_moves.length === 0){
+            this.avail_moves = [...this.map_coord_to_grid.keys()].filter(c => this.is_not_discovered_yet(c));
+        }
+        return this.avail_moves[getRandom(0, this.avail_moves.length - 1)];
     }
     print_decision_grid(){
         let row = new Array(this.grid_x_size).fill("");
@@ -489,7 +486,7 @@ class Battleship_GBA extends Battleship_Agent{
                 //for available moves
                 let grid_coord = this.stringyfyCoord(i, y);
                 let coord = this.map_grid_to_coord.get(grid_coord);
-                this.avail_moves.push(coord);
+                if(this.is_not_discovered_yet(coord)) this.avail_moves.push(coord);
                 this.decision_grid[i][y] = 1;
             }
             for(let j = y+this.#PARITY; j<this.grid_y_size; j+=this.#PARITY){
@@ -518,44 +515,100 @@ class Battleship_GBA extends Battleship_Agent{
     }
   */  
     
-    target(){
-        //this.current_target;
-
-        //nextTry():
-        let [x, y] = this.map_coord_to_grid.get(this.current_target);
-        let try_direction = this.prox_directions[this.index_of_prox_directions_in_target];
-        x += compass_points.get(try_direction)[0];
-        y += compass_points.get(try_direction)[1];
-        if(this.is_a_valid_coord(x, y)){
-            let coord_of_try = this.map_grid_to_coord.get(this.stringyfyCoord(x, y));
-            if(this.is_hit_or_miss(coord_of_try)){
-                this.hit(coord_of_try);
-                if(!this.bool_locked_direction){
-                    if(this.index_of_prox_directions_in_target == 0){
-                        //swap priority of directions
-                        swap(this.prox_directions, this.prox_directions[1], this.prox_directions[2]);
-                    } else if (this.index_of_prox_directions_in_target == 1){
-                        swap(this.prox_directions, this.prox_directions[2], this.prox_directions[3]);
-                    }
-                    this.bool_locked_direction = true;
-                }
-
-            } else{
-                this.index_of_prox_directions_in_target++;        
-                this.miss(coord_of_try);
-            }
-        } else {
-            this.index_of_prox_directions_in_target++;
-        }
-        
-
-    }
-    recalc(){
+    // ---------- TARGET MODE ----------
+    #reset_target_state(){
+        this.frontier = null;
         this.index_of_prox_directions_in_target = 0;
         this.prox_directions = ["U", "R", "D", "L"];
-        //recalc new parity: next smallest available ship size
-        this.#update_parity();
-        return (this.fleet.length == 0) // 1 if the game is over, 0 otherwise
+        this.bool_locked_direction = false;
+    }
+    // A direction is exhausted: the next one always starts again from the FIRST hit
+    #next_direction(){
+        this.index_of_prox_directions_in_target++;
+        this.frontier = this.current_target;
+    }
+    // First hit after the origin: [dir, opposite, ...the rest]
+    #lock_direction(dir){
+        const opposite = {U: "D", D: "U", L: "R", R: "L"}[dir];
+        const rest = ["U", "R", "D", "L"].filter(d => d !== dir && d !== opposite);
+        this.prox_directions = [dir, opposite, ...rest];
+        this.index_of_prox_directions_in_target = 0;
+        this.bool_locked_direction = true;
+    }
+    // A hit on a ship that is not sunk yet and still has an unshot neighbour
+    #find_unsunk_hit(){
+        for(let x = 0; x < this.grid_x_size; x++){
+            for(let y = 0; y < this.grid_y_size; y++){
+                const s = this.grid[x][y];
+                const is_hit = s === s.toLowerCase() && this.fleet_symbols.includes(s.toUpperCase());
+                if(!is_hit) continue;
+                for(const d of ["U", "R", "D", "L"]){
+                    const [dx, dy] = compass_points.get(d);
+                    if(this.is_a_valid_coord(x + dx, y + dy)){
+                        const n = this.map_grid_to_coord.get(this.stringyfyCoord(x + dx, y + dy));
+                        if(this.is_not_discovered_yet(n)){
+                            return this.map_grid_to_coord.get(this.stringyfyCoord(x, y));
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    #start_target(coord){
+        this.#reset_target_state();
+        this.current_target = coord;
+        this.frontier = coord;
+        this.setSTATUS("TARGET");
+    }
+
+    target(){
+        if(this.frontier === null) this.frontier = this.current_target;
+
+        while(this.index_of_prox_directions_in_target < this.prox_directions.length){
+            const dir = this.prox_directions[this.index_of_prox_directions_in_target];
+            const [dx, dy] = compass_points.get(dir);
+            let [x, y] = this.map_coord_to_grid.get(this.frontier); // from the LAST hit, not the first
+            x += dx;
+            y += dy;
+
+            if(this.is_a_valid_coord(x, y)){
+                const coord = this.map_grid_to_coord.get(this.stringyfyCoord(x, y));
+                if(this.is_not_discovered_yet(coord)){
+                    if(this.is_hit_or_miss(coord)){
+                        this.frontier = coord;                 // set state BEFORE hit(): it may sink the ship
+                        if(!this.bool_locked_direction) this.#lock_direction(dir);
+                        this.hit(coord);
+                    } else {
+                        this.miss(coord);
+                        this.#next_direction();
+                    }
+                    return; // one shot per turn
+                }
+            }
+            // off the board or already shot: skip this direction without spending a turn
+            this.#next_direction();
+        }
+
+        // Every direction is exhausted but the ship isn't sunk (ships touching each other)
+        const pivot = this.#find_unsunk_hit();
+        if(pivot !== null){
+            this.#start_target(pivot);
+            this.target();
+        } else {
+            this.#reset_target_state();
+            this.setSTATUS("HUNT");
+            this.hunt();
+        }
+    }
+
+    recalc(){
+        this.#reset_target_state();
+        if(this.fleet.length == 0) return true;   // game over
+        this.#update_parity();                    // parity = smallest remaining ship
+        const pivot = this.#find_unsunk_hit();    // leftover hits from another ship?
+        if(pivot !== null) this.#start_target(pivot);
+        return false;
     }
 }
 let prueba2 = new Battleship_GBA();
@@ -569,25 +622,113 @@ prueba2.continue();*/
 //prueba2.print_decision_grid();
 
 class Battleship_ABAOP extends Battleship_Agent{
-    //Agent Based on Achieveing Optimal Performance
-
-    //modify to support NxM size of grid
-    constructor(turn, name = "Simple Reflex Agent", auto = true){
+    //Agent Based on Achieving Optimal Performance
+    constructor(turn, name = "Optimal Performance Agent", auto = true){
         super(name, turn, auto)
+        this.decision_grid;
+        this.#init_decision_grid();
     }
-    /*
-    hunt(){
-        //prob function: top most
+    #init_decision_grid(x = this.grid_x_size, y = this.grid_y_size){
+        this.decision_grid = Array.from({length: x}, () => Array(y).fill(0));
     }
-    */
-    target(){
-        //do the cross method (modified with proba)
+    print_decision_grid(){
+        for(let i = 0; i < this.grid_x_size; i++){
+            console.log(this.decision_grid[i].map(v => String(v).padStart(4)).join(""));
+        }
     }
-    
-    recalc(){
-        //recalc all board: new probability function
+    player_status(){
+        print(`${this.name}: ${this.getN()}`);
+        print("GRID:");
+        this.print_grid();
+        print("DENSITY (used for the last shot):");
+        this.print_decision_grid();
+        print("---------------");
+    }
 
-        return (this.fleet.length == 0) // 1 if the game is over, 0 otherwise
+    // What the agent KNOWS about a cell: "free" | "blocked" | "hit"
+    // blocked = a miss, or a cell of a ship that is already sunk
+    // hit     = a hit on a ship that is NOT sunk yet
+    // Uppercase ship letters are undiscovered, so they count as "free" (the agent can't see them)
+    #cell_state(x, y){
+        const s = this.grid[x][y];
+        if(s === 'X') return "blocked";
+        if(s !== 'o' && s === s.toLowerCase()){
+            return this.fleet_symbols.includes(s.toUpperCase()) ? "hit" : "blocked";
+        }
+        return "free";
+    }
+    #has_unsunk_hit(){
+        for(let x = 0; x < this.grid_x_size; x++){
+            for(let y = 0; y < this.grid_y_size; y++){
+                if(this.#cell_state(x, y) === "hit") return true;
+            }
+        }
+        return false;
+    }
+
+    // The density function
+    #compute_density(){
+        this.#init_decision_grid();
+        const any_hit = this.#has_unsunk_hit();
+
+        for(const size of this.fleet){                 // only ships still afloat
+            for(const dir of ["R", "D"]){              // horizontal / vertical
+                const [dx, dy] = compass_points.get(dir);
+                for(let x = 0; x < this.grid_x_size; x++){      // (x, y) = top-left pivot
+                    for(let y = 0; y < this.grid_y_size; y++){
+                        const cells = [];
+                        let legal = true;
+                        let hits = 0;
+                        for(let k = 0; k < size; k++){
+                            const cx = x + dx * k;
+                            const cy = y + dy * k;
+                            if(!this.is_a_valid_coord(cx, cy)){ legal = false; break; }
+                            const state = this.#cell_state(cx, cy);
+                            if(state === "blocked"){ legal = false; break; }
+                            if(state === "hit") hits++;
+                            cells.push([cx, cy]);
+                        }
+                        if(!legal) continue;
+                        if(any_hit && hits === 0) continue;               // target mode: ignore placements that explain no hit
+                        const weight = any_hit ? Math.pow(10, hits) : 1;  // more hits covered = much more likely
+                        for(const [cx, cy] of cells){
+                            this.decision_grid[cx][cy] += weight;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Highest-density undiscovered cell (random among ties).
+    // hunt() (inherited) calls this, and so does target() below.
+    nextValidMove(){
+        this.#compute_density();
+        let best = -1;
+        let best_moves = [];
+        for(const m of this.avail_moves){              // avail_moves = undiscovered cells only
+            const [x, y] = this.map_coord_to_grid.get(m);
+            const d = this.decision_grid[x][y];
+            if(d > best){ best = d; best_moves = [m]; }
+            else if(d === best){ best_moves.push(m); }
+        }
+        return best_moves[getRandom(0, best_moves.length - 1)];
+    }
+
+    target(){
+        const coord = this.nextValidMove();   // same density, now steered by the hits
+        if(this.is_hit_or_miss(coord)){
+            this.hit(coord);
+        } else {
+            this.miss(coord);
+        }
+    }
+
+    recalc(){
+        if(this.fleet.length == 0) return true;               // game over
+        // sunk() already set HUNT; go back to TARGET if another ship still has hits
+        if(this.#has_unsunk_hit()) this.setSTATUS("TARGET");
+        return false;
     }
 }
 

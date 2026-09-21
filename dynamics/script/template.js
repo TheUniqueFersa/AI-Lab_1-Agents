@@ -11,6 +11,7 @@ function crearTablero(contenedor, prefijoJugador, permiteClick, player) {
     let [x,y] = [Math.floor(i/10), i%10];
     //print(`${x},  ${y}`)
     player.visual_grid = contenedor;
+    player.prefix_board = prefijoJugador;
     if (permiteClick) {
       let m = player.map_grid_to_coord.get(player.stringyfyCoord(x, y))
       casilla.dataset.m = m;
@@ -24,7 +25,7 @@ function crearTablero(contenedor, prefijoJugador, permiteClick, player) {
           print(m);
           player.hunt(m);
           player.player_status();
-          player.draw_visual_grid();
+          //player.draw_visual_grid(); // TO DRAW THE GRID
           
           //const numeroCasilla = idCompleto.split('-')[1];       
           //console.log(`Clic en la casilla ID: ${idCompleto}, Posición: ${numeroCasilla}`);

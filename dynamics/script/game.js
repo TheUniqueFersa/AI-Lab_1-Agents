@@ -60,6 +60,7 @@ class Battleship_Agent {
         this.fleet = [2, 3, 3, 4, 5];
         this.fleet_symbols = ['A', 'B', 'S', 'C', 'D'];
         this.visual_grid = null;
+        this.prefix_board = null;
         
 
         this.prox_directions = ["U", "R", "D", "L"];
@@ -86,13 +87,36 @@ class Battleship_Agent {
     }
     //GRAPHIC
     draw_visual_grid(){
-        //this.visual_grid
+        //console.log(this.name);
+        //console.log(this.visual_grid)   
+        console.log(this.prefix_board);
+        let board = this.visual_grid
+        for(let x =0 ; x < this.grid_x_size ; x ++ ){
+            for(let y = 0 ; y < this.grid_y_size ; y ++){
+                let symbol = this.grid[x][y];
+                if(symbol === 'o') continue;
+
+                let i = x * this.grid_y_size + y ;
+                let casilla = document.getElementById(`${this.prefix_board}-${i}`);
+                if(!casilla) continue;
+
+                if(symbol === 'X'){
+                    casilla.classList.add('miss')
+                }else if(symbol === symbol.toLowerCase()){
+                    // golpeado, siempre se muestra (fue descubierto)
+                    casilla.classList.add(`ship-${symbol.toUpperCase()}`, 'hit');
+                }else{
+                    casilla.classList.add(`ship-${symbol}`);
+                }
+            }
+        }
+        
     }
     //only occurs when is a Bot
     #stop_timer(){
         if(this.timer){
+            print("TIRO DEL BOT");
             this.player_status();
-            
 
             clearTimeout(this.timer);
             this.timer = null;
@@ -109,7 +133,7 @@ class Battleship_Agent {
             f();
             if(this.getAUTO()){
                 print(TURN);
-                this.draw_visual_grid();
+                this.draw_visual_grid(); // DRAW GRID
                 TURN = toogle_turn(TURN);
                 print(TURN);
             }

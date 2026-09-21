@@ -1,66 +1,73 @@
-*{
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ================= PHONE (base): the page scrolls, grids are as wide as the screen ================= */
+:root { --board-size: min(92vw, 480px); }
+
+main {
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  width: 100vw; min-height: 100vh; padding: 2.5vh 0;
+  background-color: #023E7D;
 }
 
-main{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    width: 100vw;
-    height: 100vh;
-    background-color: #023E7D;
+#main_container {
+  display: flex; flex-direction: column; flex-wrap: nowrap;
+  justify-content: flex-start; align-items: center; gap: 20px;
+  width: 95vw; min-height: 95vh; padding: 16px 0;
+  background-color: bisque;
 }
 
+.player_panel { width: var(--board-size); display: flex; flex-direction: column; gap: 12px; }
 
-#main_container{
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    align-items: center;
-    width: 95vw;
-    height: 95vh;
-    background-color: bisque;
+/* both grids fill the panel => always exactly the same size */
+.board_container, .decision_grid { width: 100%; aspect-ratio: 1 / 1; }
+
+.board_container {
+  display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr);
+  gap: 1px; background-color: black;
+}
+.casilla { background-color: rebeccapurple; }
+.interactiva { cursor: pointer; }
+.interactiva:hover { background-color: #953737; }
+
+/* ---------- decision grid ---------- */
+.toggle_decision { display: none; min-height: 44px; border: 2px solid #000; border-radius: 10px;
+                   background: #fff; color: #0b2545; font-weight: 600; cursor: pointer; }
+.player_panel.has-decision .toggle_decision { display: block; }
+.toggle_decision[aria-pressed="true"] { background: #f5b700; }
+
+.decision_box { display: none; }
+.player_panel.show-decision .decision_box { display: block; }
+
+.decision_grid { display: grid; gap: 2px; }
+.dcell { display: flex; align-items: center; justify-content: center; border-radius: 3px;
+         font: 600 clamp(9px, 2.4vw, 12px)/1 system-ui, sans-serif; user-select: none; }
+
+.d-parity { background: #f5b700; }
+.d-skip   { background: repeating-linear-gradient(45deg, #2a4a72 0 4px, #24405f 4px 8px); }
+.d-miss   { background: #3a3a3a; color: #bbb; }
+.d-hit    { background: #8b1e1e; color: #fff; }
+.d-best   { outline: 3px solid #ff3b30; outline-offset: -3px; }
+
+.decision_legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12px; color: #1d2b3a; }
+.decision_legend .sw  { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px;
+                        border-radius: 3px; margin-right: 4px; font-size: 10px; vertical-align: middle; }
+.decision_legend .bar { display: inline-block; width: 80px; height: 12px; border-radius: 3px; margin: 0 4px; vertical-align: middle;
+                        background: linear-gradient(90deg, rgb(68,1,84), rgb(33,145,140), rgb(253,231,37)); }
+
+/* PHONE: the decision grid REPLACES the board in place */
+@media (max-width: 799px) {
+  .player_panel.show-decision .board_container { display: none; }
 }
 
-#container_player1, #container_player2{
-    width: 95%;
-    max-width: 45vh;
-    aspect-ratio: 1/1;
-    background-color: black;
-    
-
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    grid-template-rows: repeat(10, 1fr);
-    gap: 1px;
-}
-
-/*===================COMPUTER DISPLAY===========================*/
+/* ================= COMPUTER ================= */
 @media (min-width: 800px) {
-  
+  :root {
+    --stack-overhead: 165px;   /* button + gaps + legend + padding; lower it to make the grids bigger */
+    --board-size: min(44vw, calc((95vh - var(--stack-overhead)) / 2));  /* 2 stacked grids fit in the container */
+  }
+  main { height: 100vh; min-height: 0; padding: 0; }
   #main_container {
-    flex-direction: row;
-  }
-
-  #container_player1, #container_player2 {
-    width: 45%; 
-    max-width: 70vh;
+    flex-direction: row; justify-content: center; align-items: flex-start;
+    gap: 4vw; height: 95vh; min-height: 0; padding: 16px;
   }
 }
-
-.casilla{
-    background-color: rebeccapurple;
-}
-
-.interactiva {
-  cursor: pointer;
-}
-
-.interactiva:hover {
-  background-color: #953737; 
-}
-
-

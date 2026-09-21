@@ -50,6 +50,9 @@ new Battleship_ABAOP(1)
 crearTablero(tableroJugador1, 'p1', true, player);
 crearTablero(tableroJugador2, 'p2', false, bot);
 
+attach_decision_view(player, 'player1');   // does nothing for the human
+attach_decision_view(bot, 'player2');
+
 const turns = [player, bot];
 const PlayerA = player;
 const PlayerB = bot;

@@ -508,6 +508,7 @@ class Battleship_GBA extends Battleship_Agent{
         print("AVAILABLE MOVES")
         this.printAvailableMoves();
         print("---------------");
+        if(this.decision_view) this.decision_view.refresh();
     }
 /*
     hunt(){
@@ -637,6 +638,7 @@ class Battleship_ABAOP extends Battleship_Agent{
         }
     }
     player_status(){
+        if(this.decision_view) this.decision_view.refresh();
         print(`${this.name}: ${this.getN()}`);
         print("GRID:");
         this.print_grid();

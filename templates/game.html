@@ -9,15 +9,29 @@
 <body>
     <main>
         <div id="main_container">
-            <div id="container_player1">
-                
+
+            <section class="player_panel" id="panel_player1">
+            <div id="container_player1" class="board_container"></div>
+            <button class="toggle_decision" id="toggle_player1" type="button" aria-pressed="false">Decision grid</button>
+            <div class="decision_box">
+                <div class="decision_grid" id="decision_grid_player1"></div>
+                <div class="decision_legend" id="legend_player1"></div>
             </div>
-            <div id="container_player2"">
-                
+            </section>
+
+            <section class="player_panel" id="panel_player2">
+            <div id="container_player2" class="board_container"></div>
+            <button class="toggle_decision" id="toggle_player2" type="button" aria-pressed="false">Decision grid</button>
+            <div class="decision_box">
+                <div class="decision_grid" id="decision_grid_player2"></div>
+                <div class="decision_legend" id="legend_player2"></div>
             </div>
+            </section>
+
         </div>
     </main>
 
+    <script src="../dynamics/script/decision_view.js"></script>   <!-- NEW: put it first -->
     
     
 

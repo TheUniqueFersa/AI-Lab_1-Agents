@@ -89,7 +89,10 @@ class Battleship_Agent {
     draw_visual_grid(){
         //console.log(this.name);
         //console.log(this.visual_grid)   
-        console.log(this.prefix_board);
+        //console.log(this.prefix_board);
+        //console.log(this.#AUTO);
+        //Human -> this.auto == false
+
         let board = this.visual_grid
         for(let x =0 ; x < this.grid_x_size ; x ++ ){
             for(let y = 0 ; y < this.grid_y_size ; y ++){
@@ -104,9 +107,11 @@ class Battleship_Agent {
                     casilla.classList.add('miss')
                 }else if(symbol === symbol.toLowerCase()){
                     // golpeado, siempre se muestra (fue descubierto)
-                    casilla.classList.add(`ship-${symbol.toUpperCase()}`, 'hit');
+                        casilla.classList.add(`ship-${symbol.toUpperCase()}`, 'hit');
                 }else{
-                    casilla.classList.add(`ship-${symbol}`);
+                    if(this.#AUTO){
+                        casilla.classList.add(`ship-${symbol}`);
+                    }
                 }
             }
         }

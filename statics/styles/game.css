@@ -22,6 +22,7 @@ main{
     align-items: center;
     width: 95vw;
     height: 95vh;
+    border-radius: 20px;
     background-color: bisque;
 }
 
@@ -52,7 +53,7 @@ main{
 }
 
 .casilla{
-    background-color: rebeccapurple;
+    background-color: #0353A4;
 }
 
 .interactiva {
@@ -60,17 +61,17 @@ main{
 }
 
 .interactiva:hover {
-  background-color: #953737; 
+  background-color: #033d77; 
 }
 
 
 
 /* DISEÑO DE LOS BARCOS*/
-.ship-A { background-color: #34495e; }
+.ship-A { background-color: #253443; }
 .ship-B { background-color: #16a085; }
 .ship-S { background-color: #8e44ad; }
-.ship-C { background-color: #d35400; }
-.ship-D { background-color: #c0392b; }
+.ship-C { background-color: #d6a803; }
+.ship-D { background-color: #5dd5e2; }
 
 .miss {
     background-color: #7f8c8d;

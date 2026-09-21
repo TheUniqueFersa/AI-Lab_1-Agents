@@ -25,13 +25,13 @@ function crearTablero(contenedor, prefijoJugador, permiteClick, player) {
           print(m);
           player.hunt(m);
           player.player_status();
-          //player.draw_visual_grid(); // TO DRAW THE GRID
+          player.draw_visual_grid(); // TO DRAW THE GRID
           
           //const numeroCasilla = idCompleto.split('-')[1];       
           //console.log(`Clic en la casilla ID: ${idCompleto}, Posición: ${numeroCasilla}`);
           
     
-          this.style.backgroundColor = '#e74c3c'; 
+          //this.style.backgroundColor = '#e74c3c'; 
           TURN = toogle_turn(TURN);
           turns[toogle_turn(player.turn)].continue();
           

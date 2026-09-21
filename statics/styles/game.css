@@ -64,3 +64,18 @@ main{
 }
 
 
+
+/* DISEÑO DE LOS BARCOS*/
+.ship-A { background-color: #34495e; }
+.ship-B { background-color: #16a085; }
+.ship-S { background-color: #8e44ad; }
+.ship-C { background-color: #d35400; }
+.ship-D { background-color: #c0392b; }
+
+.miss {
+    background-color: #7f8c8d;
+}
+.hit {
+    background-color: #e74c3c;
+    outline: 2px solid #fff;
+}

@@ -59,8 +59,6 @@ class Battleship_Agent {
         this.map_coord_to_grid = new Map();
         this.fleet = [2, 3, 3, 4, 5];
         this.fleet_symbols = ['A', 'B', 'S', 'C', 'D'];
-        
-
         this.prox_directions = ["U", "R", "D", "L"];
         this.bool_locked_direction = false;
 
@@ -82,8 +80,44 @@ class Battleship_Agent {
         this.#init_grid(x, y);
         this.#init_grid_map(x, y);
         this.#generate_fleet_locations();
+
         
+        //Draw grid if is bot
+        if( this.#AUTO){
+            let board2 = document.getElementById("container_player2");
+            this.draw_board(board2);            
+        }        
     }
+
+    //Drawing board
+    draw_board(board){
+        this.grid;
+        this.print_grid();
+
+        print(this.name);
+        print("\n");
+        //iterate on grid to find every stage of every cell
+        for(let x=0;x<this.grid_x_size;x++){
+            for(let y=0 ; y<this.grid_y_size ; y ++){
+                let symbol = this.grid[x][y];
+                if(symbol === 'o') continue; 
+
+                
+                let i = x * this.grid_y_size + y ;
+                let casilla = document.getElementById(`${this.board_prefix}-${i}`);
+                if(!casilla) continue; 
+
+                if(symbol === 'X'){
+                    casilla.classList.add('miss');
+                }else if(symbol === symbol.toLowerCase()){
+                    casilla.classList.add(`ship-${symbol.toUpperCase()}`, 'hit');
+                }else{
+                    casilla.classList.add(`ship-${symbol}`);
+                }
+            }
+        }
+    }
+
     //only occurs when is a Bot
     #stop_timer(){
         if(this.timer){
@@ -225,8 +259,6 @@ class Battleship_Agent {
             }
             console.log(row[i]);
         }
-
-
     }
     nextValidMove(){
         //super naive implementation
@@ -275,9 +307,6 @@ class Battleship_Agent {
                 this.miss(next_target);
             }
         }
-        
-
-        
     }
     target(){
 
@@ -409,8 +438,8 @@ class Battleship_SRA extends Battleship_Agent{
     //Simple Reflex Agent
 
     //modify to support NxM size of grid
-    constructor(turn, name = "Simple Reflex Agent", auto = true){
-        super(name, turn, auto)
+    constructor(turn, name = "Simple Reflex Agent", auto = true, board_prefix="p2"){
+        super(name, turn, auto, board_prefix);
     }
     nextValidMove(){
         let size_of_availables = this.avail_moves.length;
@@ -434,7 +463,7 @@ class Battleship_SRA extends Battleship_Agent{
     }
     
 }
-let prueba = new Battleship_SRA();
+//let prueba = new Battleship_SRA();
 //console.log(prueba.grid);
 //prueba.print_grid()
 //prueba.print_map_to_coord();
@@ -446,8 +475,8 @@ class Battleship_GBA extends Battleship_Agent{
     //Goal Base Agent
     #PARITY = 2;
     //modify to support NxM size of grid
-    constructor(turn, name = "Simple Reflex Agent", auto = true){
-        super(name, turn, auto)
+    constructor(turn, name = "Simple Reflex Agent", auto = true, board_prefix="p2"){
+        super(name, turn, auto);
         this.decision_grid;
         this.#init_decision_grid();
         this.#update_parity();
@@ -557,7 +586,7 @@ class Battleship_GBA extends Battleship_Agent{
         return (this.fleet.length == 0) // 1 if the game is over, 0 otherwise
     }
 }
-let prueba2 = new Battleship_GBA();
+//let prueba2 = new Battleship_GBA();
 /*
 print("INITIAL GRIDS:");
 prueba2.print_grid();
@@ -599,3 +628,11 @@ function toogle_turn(t){
     if (t) return 0;
     else return 1;
 }
+
+
+
+// 2 PLAYES PER GAME
+// CREATION OF OBJECTS CORRESPONDING TO EVERY PLAYER
+
+//let player1 = new Battleship_Agent();
+//let player2 = new Battleship_SRA();

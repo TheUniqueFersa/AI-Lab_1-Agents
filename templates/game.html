@@ -1,42 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../statics/styles/game.css">
-    <title>Partida</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../statics/styles/game.css">
+<title>Match</title>
 </head>
 <body>
-    <main>
-        <div id="main_container">
+<main>
 
-            <section class="player_panel" id="panel_player1">
-            <div id="container_player1" class="board_container"></div>
-            <button class="toggle_decision" id="toggle_player1" type="button" aria-pressed="false">Decision grid</button>
-            <div class="decision_box">
-                <div class="decision_grid" id="decision_grid_player1"></div>
-                <div class="decision_legend" id="legend_player1"></div>
-            </div>
-            </section>
+  <section id="controls">
+    <div class="ctrl_row">
+      <button id="btn_start" type="button">Start</button>
+      <button id="btn_pause" type="button" disabled>Pause</button>
+      <button id="btn_stop" type="button" disabled>Stop</button>
+      <span id="status">Ready</span>
+    </div>
+    <div class="ctrl_row">
+      <label class="t_field" id="t_field1">Left T (ms)
+        <input id="t1" type="number" min="0" step="50" value="500" inputmode="numeric"></label>
+      <label class="t_field" id="t_field2">Right T (ms)
+        <input id="t2" type="number" min="0" step="50" value="500" inputmode="numeric"></label>
+      <span id="mode_hint"></span>
+    </div>
+    <progress id="progress" value="0" max="1"></progress>
+  </section>
 
-            <section class="player_panel" id="panel_player2">
-            <div id="container_player2" class="board_container"></div>
-            <button class="toggle_decision" id="toggle_player2" type="button" aria-pressed="false">Decision grid</button>
-            <div class="decision_box">
-                <div class="decision_grid" id="decision_grid_player2"></div>
-                <div class="decision_legend" id="legend_player2"></div>
-            </div>
-            </section>
+  <div id="main_container">
+    <section class="player_panel" id="panel_player1">
+      <div id="container_player1" class="board_container"></div>
+      <button class="toggle_decision" id="toggle_player1" type="button" aria-pressed="false">Decision grid</button>
+      <div class="decision_box">
+        <div class="decision_grid" id="decision_grid_player1"></div>
+        <div class="decision_legend" id="legend_player1"></div>
+      </div>
+    </section>
 
-        </div>
-    </main>
+    <section class="player_panel" id="panel_player2">
+      <div id="container_player2" class="board_container"></div>
+      <button class="toggle_decision" id="toggle_player2" type="button" aria-pressed="false">Decision grid</button>
+      <div class="decision_box">
+        <div class="decision_grid" id="decision_grid_player2"></div>
+        <div class="decision_legend" id="legend_player2"></div>
+      </div>
+    </section>
+  </div>
 
-    <script src="../dynamics/script/decision_view.js"></script>   <!-- NEW: put it first -->
-    
-    
+</main>
 
-    <script src="../dynamics/script/game.js"></script>
-    <script src="../dynamics/script/test_.js"></script>
-    <script src="../dynamics/script/template.js"></script>
+<section id="results" hidden>
+  <h2>Results</h2>
+  <div id="summary_table"></div>
+  <div class="ctrl_row">
+    <button id="btn_json" type="button">Download JSON</button>
+    <button id="btn_csv" type="button">Download CSV</button>
+  </div>
+</section>
+
+<script src="../dynamics/script/decision_view.js"></script>
+<script src="../dynamics/script/game.js"></script>
+<script src="../dynamics/script/game_runner.js"></script>
+<script src="../dynamics/script/game_page.js"></script>
 </body>
 </html>

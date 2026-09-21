@@ -1,43 +1,37 @@
-*{
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    color: #d8dde8;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
+main {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  min-height: 100vh; padding: 24px 12px;
+  background-color: #023E7D; color: #e6eefb;
+  font-family: system-ui, sans-serif;
+}
+#p_title { font-size: 2rem; }
 
-main{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    width: 100vw;
-    height: 100vh;
-    background-color: #023E7D;
-}
-#title_id{
-    
-}
-#p_title{
-    font-size:xx-large;
-}
+#menu_form { display: flex; flex-direction: column; align-items: center; gap: 18px; width: min(100%, 460px); }
+#pick_columns { display: flex; gap: 16px; width: 100%; }
+.pick_col { flex: 1; display: flex; flex-direction: column; gap: 10px; border: 0; min-width: 0; }
+.pick_col legend { font-weight: 600; margin-bottom: 8px; text-align: center; width: 100%; }
 
-#options_container{
+/* radio buttons drawn as the old white boxes */
+.pick input { position: absolute; opacity: 0; pointer-events: none; }
+.pick span {
+  display: flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 8px;
+  background: #fff; color: #0b2545; border: 3px solid #000; border-radius: 12px;
+  font-weight: 600; cursor: pointer; text-align: center;
+}
+.pick input:checked + span { background: #f5b700; }
+.pick input:focus-visible + span { outline: 3px solid #fff; outline-offset: 2px; }
+.pick input:disabled + span { opacity: .35; cursor: not-allowed; }
 
-}
+#games_row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center; }
+#games { width: 110px; min-height: 44px; padding: 0 10px; border-radius: 8px; border: 2px solid #000; font-size: 1rem; }
+#games:disabled { opacity: .5; }
+#advanced { display: flex; flex-direction: column; gap: 8px; }
+#advanced label { display: block; margin-top: 8px; }
 
-.options_box{
-    border: solid 3px black;
-    background-color: rgb(255, 255,255);
-    border-radius: 10px;
-    padding: 2vw;
-    margin: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+#play {
+  min-height: 52px; width: 100%; border: 3px solid #000; border-radius: 12px;
+  background: #fff; color: #0b2545; font-size: 1.1rem; font-weight: 700; cursor: pointer;
 }
-.options_box:hover{
-    background-color: antiquewhite;
-    transform: scale(1.5);  
-    
-}
+#play:hover { background: #f5b700; }

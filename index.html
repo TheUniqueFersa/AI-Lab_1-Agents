@@ -1,36 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="statics/styles/style.css">
-  <title>Document</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="statics/styles/style.css">
+<title>Battleship</title>
 </head>
 <body>
-  <main>
-    <div id="title_id">
-      <p id="p_title">Battleship</p>
-    </div>
-    <div id="options_container">
-      <div class="options_box" id="playervsdumb">
-        <p>Player vs Dumb</p>
-      </div>
-      <div class="options_box"id="playervsai">
-        <p>Player vs AI</p>
-      </div>
-      <div class="options_box"id="dumbvsai">
-        <p>Dumb vs AI</p>
-      </div>
-      <div class="options_box"id="dumbvsdumb">
-        <p>Dumb vs Dumb</p>
-      </div>
-      <div class="options_box"id="aivsai">
-        <p>IA vs IA</p>
-      </div>
+<main>
+  <div id="title_id">
+    <p id="p_title">Battleship</p>
+  </div>
+
+  <form id="menu_form" autocomplete="off">
+    <div id="pick_columns">
+      <fieldset class="pick_col">
+        <legend>Left player</legend>
+        <label class="pick"><input type="radio" name="player1" value="player"><span>Human</span></label>
+        <label class="pick"><input type="radio" name="player1" value="dumb"><span>Dumb (SRA)</span></label>
+        <label class="pick"><input type="radio" name="player1" value="gba" checked><span>GBA</span></label>
+        <label class="pick"><input type="radio" name="player1" value="abaop"><span>ABAOP</span></label>
+      </fieldset>
+
+      <fieldset class="pick_col">
+        <legend>Right player</legend>
+        <label class="pick"><input type="radio" name="player2" value="player"><span>Human</span></label>
+        <label class="pick"><input type="radio" name="player2" value="dumb"><span>Dumb (SRA)</span></label>
+        <label class="pick"><input type="radio" name="player2" value="gba"><span>GBA</span></label>
+        <label class="pick"><input type="radio" name="player2" value="abaop" checked><span>ABAOP</span></label>
+      </fieldset>
     </div>
 
-  </main>
+    <div id="games_row">
+      <label>Number of games
+        <input id="games" type="number" min="1" max="10000" value="100" inputmode="numeric">
+      </label>
+      <span id="games_note"></span>
+    </div>
 
-  <script src="./dynamics/script/script.js"></script>
+    <details id="advanced">
+      <summary>Options</summary>
+      <label><input type="checkbox" id="same_layout" checked> Same fleet layout for both agents</label>
+      <label><input type="checkbox" id="alternate" checked> Alternate who shoots first</label>
+    </details>
+
+    <button id="play" type="submit">Play</button>
+  </form>
+</main>
+
+<script src="./dynamics/script/script.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 // decision_view.js: draws an agent's decision_grid. Touches no game logic.
+// Can be called again for every new game (it rebuilds its cells).
 const SCALE_STOPS = [[68, 1, 84], [33, 145, 140], [253, 231, 37]]; // purple -> teal -> yellow
 
 function scale_color(t){                       // t in [0,1]
@@ -16,16 +17,21 @@ function compact(v){
 
 // who = 'player1' | 'player2' (the ids used in game.html)
 function attach_decision_view(agent, who){
-    if(agent.decision_grid === undefined) return;          // human / SRA: nothing to show
     const panel  = document.getElementById(`panel_${who}`);
     const grid   = document.getElementById(`decision_grid_${who}`);
     const legend = document.getElementById(`legend_${who}`);
     const button = document.getElementById(`toggle_${who}`);
     if(!panel || !grid) return;
 
+    if(agent.decision_grid === undefined){                 // human / SRA: nothing to show
+        panel.classList.remove('has-decision', 'show-decision');
+        return;
+    }
+
     const is_density = agent instanceof Battleship_ABAOP;
     const X = agent.grid_x_size, Y = agent.grid_y_size;
 
+    grid.innerHTML = '';                                   // rebuild (new game)
     grid.style.gridTemplateColumns = `repeat(${Y}, 1fr)`;
     grid.style.gridTemplateRows = `repeat(${X}, 1fr)`;
     const cells = [];
@@ -91,12 +97,12 @@ function attach_decision_view(agent, who){
         }
     }
 
-    button.addEventListener('click', () => {
+    button.onclick = () => {                               // onclick (not addEventListener): no stacking between games
         const on = panel.classList.toggle('show-decision');
         button.setAttribute('aria-pressed', String(on));
-    });
+    };
 
-    panel.classList.add('has-decision');    // shows the button
+    panel.classList.add('has-decision');                   // shows the button
     agent.decision_view = { refresh };
-    refresh();                              // initial state
+    refresh();                                             // initial state
 }

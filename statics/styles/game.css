@@ -1,18 +1,37 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: #023E7D; font-family: system-ui, sans-serif; }
+.hidden { display: none !important; }
 
 /* ================= PHONE (base): the page scrolls, grids are as wide as the screen ================= */
 :root { --board-size: min(92vw, 480px); }
 
 main {
-  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  display: flex; align-items: center; justify-content: flex-start; flex-direction: column;
   width: 100vw; min-height: 100vh; padding: 2.5vh 0;
   background-color: #023E7D;
 }
 
+/* ---------- controls ---------- */
+#controls {
+  width: 95vw; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;
+  background: #dbe8f7; color: #0b2545; border-radius: 10px 10px 0 0;
+}
+.ctrl_row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.ctrl_row button, #results button {
+  min-height: 44px; padding: 0 16px; border: 2px solid #000; border-radius: 10px;
+  background: #fff; color: #0b2545; font-weight: 600; cursor: pointer;
+}
+.ctrl_row button:disabled { opacity: .4; cursor: not-allowed; }
+#status { font-weight: 600; }
+.t_field { display: flex; align-items: center; gap: 6px; font-size: .9rem; }
+.t_field input { width: 90px; min-height: 40px; padding: 0 8px; border: 2px solid #000; border-radius: 8px; font-size: 1rem; }
+#mode_hint { font-size: .85rem; color: #7a3b00; }
+#progress { width: 100%; height: 10px; }
+
 #main_container {
   display: flex; flex-direction: column; flex-wrap: nowrap;
   justify-content: flex-start; align-items: center; gap: 20px;
-  width: 95vw; min-height: 95vh; padding: 16px 0;
+  width: 95vw; padding: 16px 0;
   background-color: bisque;
 }
 
@@ -59,15 +78,54 @@ main {
   .player_panel.show-decision .board_container { display: none; }
 }
 
+/* ---------- results (below the game, scroll down) ---------- */
+#results { width: 95vw; margin: 16px auto; padding: 16px; background: bisque; color: #1d2b3a; border-radius: 10px; }
+#results h2 { margin-bottom: 8px; }
+#results p { margin: 6px 0; }
+.table_scroll { overflow-x: auto; }
+#results table { border-collapse: collapse; min-width: 640px; width: 100%; }
+#results th, #results td { padding: 6px 10px; border-bottom: 1px solid #c9b79c; text-align: left; white-space: nowrap; }
+#results thead th { background: #e9d8bb; }
+#results .ctrl_row { margin-top: 12px; }
+
 /* ================= COMPUTER ================= */
 @media (min-width: 800px) {
   :root {
-    --stack-overhead: 165px;   /* button + gaps + legend + padding; lower it to make the grids bigger */
-    --board-size: min(44vw, calc((95vh - var(--stack-overhead)) / 2));  /* 2 stacked grids fit in the container */
+    --stack-overhead: 300px;   /* controls + button + gaps + legend; lower it to make the grids bigger */
+    --board-size: min(44vw, calc((100vh - var(--stack-overhead)) / 2));
   }
-  main { height: 100vh; min-height: 0; padding: 0; }
+  main { height: 100vh; min-height: 0; padding: 0; justify-content: center; }
   #main_container {
-    flex-direction: row; justify-content: center; align-items: flex-start;
-    gap: 4vw; height: 95vh; min-height: 0; padding: 16px;
+    flex: 1; min-height: 0; width: 95vw;
+    flex-direction: row; justify-content: center; align-items: flex-start; gap: 4vw; padding: 16px;
   }
+}
+
+.casilla{
+    background-color: rebeccapurple;
+}
+
+.interactiva {
+  cursor: pointer;
+}
+
+.interactiva:hover {
+  background-color: #953737; 
+}
+
+
+
+/* DISEÑO DE LOS BARCOS*/
+.ship-A { background-color: #34495e; }
+.ship-B { background-color: #16a085; }
+.ship-S { background-color: #8e44ad; }
+.ship-C { background-color: #d35400; }
+.ship-D { background-color: #c0392b; }
+
+.miss {
+    background-color: #7f8c8d;
+}
+.hit {
+    background-color: #e74c3c;
+    outline: 2px solid #fff;
 }

@@ -82,8 +82,7 @@ class Battleship_Agent {
         this.timer = null;
         this.#init_grid(x, y);
         this.#init_grid_map(x, y);
-        this.#generate_fleet_locations();
-        
+        this.#generate_fleet_locations();        
     }
     //GRAPHIC
     draw_visual_grid(){
@@ -401,8 +400,8 @@ class Battleship_SRA extends Battleship_Agent{
     //Simple Reflex Agent
 
     //modify to support NxM size of grid
-    constructor(turn, name = "Simple Reflex Agent", auto = true, board_prefix="p2"){
-        super(name, turn, auto, board_prefix);
+    constructor(turn, name = "Simple Reflex Agent", auto = true){
+        super(name, turn, auto);
     }
     nextValidMove(){
         let size_of_availables = this.avail_moves.length;

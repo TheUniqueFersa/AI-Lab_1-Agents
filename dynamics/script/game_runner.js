@@ -33,7 +33,8 @@ class Game {
         this.first = first;             // index of the agent that shoots first
         this.turn = first;              // index of the agent that shoots now
         this.play_out = play_out;       // stats mode: let the loser finish too (uncensored moves)
-        this.running = false;
+        this.running = false;           // timers are running
+        this.armed = false;             // the game is part of a started series (human clicks are accepted, even while paused)
         this.over = false;
         this.winner_index = null;
         this.end = null;                // snapshot of both agents at the moment the game ended
@@ -60,6 +61,7 @@ class Game {
         if(this.agents[i].is_over()){
             this.over = true;
             this.running = false;
+            this.armed = false;
             this.winner_index = i;
             clearTimeout(this.timer);
             this.end = this.agents.map(a => ({moves: a.getMOVES(), hits: total_hits(a), sunk: SHIPS.size - a.fleet.length}));
@@ -74,12 +76,21 @@ class Game {
     // Human click. Returns true if the shot was accepted.
     human_shot(agent, coord){
         const i = this.agents.indexOf(agent);
-        if(!this.running || this.over || this.turn !== i) return false;
+        if(!this.armed || this.over || this.turn !== i) return false;
         if(!agent.is_not_discovered_yet(coord)) return false;
         agent.hunt(coord);
         this.settle(i);
         if(this.on_shot) this.on_shot(i);
         if(this.over) this.fire_over(); else this.schedule();
+        return true;
+    }
+
+    // ONE shot on demand by the agent whose turn it is (the "Next move" button).
+    // Returns false if it is a human's turn (the human has to click) or the game is over.
+    next_move(){
+        if(this.over) return false;
+        if(!this.agents[this.turn].getAUTO()) return false;
+        this.step();
         return true;
     }
 
@@ -142,6 +153,7 @@ class Series {
         this.stopped = false;
         this.running = false;
         this._release = null;
+        this._pending_step = false;       // "Next move" pressed between games: take the first shot of the next one
         this.hooks = {new_game: null, progress: null, done: null};
     }
     has_human(){ return this.kinds.includes("player"); }
@@ -152,18 +164,17 @@ class Series {
         const first = (this.alternate && !this.has_human()) ? this.created % 2 : 0;
         this.created++;
         this.game = new Game(this.kinds, {first, same_layout: this.same_layout, T: this.T, play_out: this.play_out});
-        // in stats mode nothing is drawn, so we don't even build the boards
-        if(this.hooks.new_game && !this.stats_mode()) this.hooks.new_game(this.game);
+        // in stats mode nothing is drawn, so we don't even build the boards (unless the user is stepping by hand)
+        if(this.hooks.new_game && (!this.stats_mode() || this.paused)) this.hooks.new_game(this.game);
         return this.game;
     }
 
-    async run(){
+    async run({paused = false} = {}){
         this.running = true;
         this.stopped = false;
+        this.paused = paused;             // run({paused: true}): start without timers, for stepping with next_move()
         let last_yield = performance.now();
         while(this.results.length < this.total && !this.stopped){
-            while(this.paused && !this.stopped) await sleep(100);
-            if(this.stopped) break;
             if(!this.game || this.game.over) this.new_game();
             await this.play_current();
             if(this.stopped) break;
@@ -174,6 +185,8 @@ class Series {
                     await sleep(0);
                     last_yield = performance.now();
                 }
+                // paused between games: wait here until Resume (or Next move)
+                while(this.paused && !this.stopped && !this._pending_step) await sleep(50);
             }
         }
         this.running = false;
@@ -184,7 +197,11 @@ class Series {
             const g = this.game;
             this._release = resolve;
             g.on_over = () => { this.record(g); this._release = null; resolve(); };
-            g.start();
+            g.armed = true;
+            const step_now = this._pending_step;
+            this._pending_step = false;
+            if(!this.paused) g.start();              // timers (or the fast statistics loop)
+            else if(step_now) g.next_move();         // paused, but "Next move" was pressed between games
         });
     }
     pause(){ this.paused = true; if(this.game) this.game.pause(); }
@@ -192,10 +209,17 @@ class Series {
         this.paused = false;
         if(this.game && !this.game.over && this._release) this.game.start();
     }
+    // Manual step. Stepping implies pause. Returns false if it is a human's turn or nothing can move.
+    next_move(){
+        if(this.stopped || !this.running) return false;
+        if(!this.paused) this.pause();
+        if(!this.game || this.game.over){ this._pending_step = true; return true; }   // go on to the next game
+        return this.game.next_move();
+    }
     stop(){
         this.stopped = true;
         this.paused = false;
-        if(this.game) this.game.pause();
+        if(this.game){ this.game.pause(); this.game.armed = false; }
         if(this._release){ this._release(); this._release = null; }
     }
     // Live change of T (any time). Applies to the very next shot; T = 0 for both => stats mode.

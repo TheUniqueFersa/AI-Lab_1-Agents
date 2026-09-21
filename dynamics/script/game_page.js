@@ -42,6 +42,7 @@ function build_view(game){
         const a = game.agents[i];
         if(typeof a.draw_visual_grid === "function") a.draw_visual_grid();
         if(a.decision_view) a.decision_view.refresh();
+        update_turn_hint();
     };
     game.on_shot(0);      // initial draw: ships of the bots + empty decision grids
     game.on_shot(1);
@@ -74,6 +75,18 @@ function update_mode_hint(){
     $('mode_hint').textContent = series.stats_mode()
         ? "T = 0 for both agents: statistics mode (nothing is drawn, games run at full speed)."
         : "";
+}
+// While paused / stepping: tells whose move is next
+function update_turn_hint(){
+    const g = series.game;
+    let text = "";
+    if(series.running && series.paused && g && !g.over){
+        const i = g.turn;
+        text = g.agents[i].getAUTO()
+            ? `Next move: ${i === 0 ? "left" : "right"} (${label(kinds[i])})`
+            : "Your turn: click on your board";
+    }
+    $('turn_hint').textContent = text;
 }
 function label(kind){ return KIND_LABEL[kind]; }
 function winner_text(rec){
@@ -174,6 +187,7 @@ function set_buttons(running){
 function on_done(s){
     set_buttons(false);
     update_status(s);
+    update_turn_hint();
     if(!has_human && s.results.length > 0){
         render_results(s);
         if(s.total > 1) $('results').scrollIntoView({behavior: "smooth"});
@@ -201,6 +215,18 @@ $('btn_start').addEventListener('click', () => {
 $('btn_pause').addEventListener('click', () => {
     if(series.paused){ series.resume(); $('btn_pause').textContent = "Pause"; }
     else { series.pause(); $('btn_pause').textContent = "Resume"; }
+    update_turn_hint();
+});
+// NEXT MOVE: one shot by whoever's turn it is. Works before Start, while running (it pauses) and while paused.
+$('btn_next').addEventListener('click', () => {
+    if(!series.running){
+        if(series.results.length > 0 || series.stopped) init_series();   // after a finished series: start a new one
+        set_buttons(true);
+        series.run({paused: true});                                      // started without timers
+    }
+    series.next_move();                                                  // (a human's turn is ignored: the human clicks)
+    $('btn_pause').textContent = "Resume";
+    update_turn_hint();
 });
 $('btn_stop').addEventListener('click', () => series.stop());
 

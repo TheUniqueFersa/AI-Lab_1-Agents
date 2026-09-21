@@ -139,3 +139,5 @@ main {
     background-color: #e74c3c;
     outline: 2px solid #fff;
 }
+
+#turn_hint { font-size: .9rem; font-weight: 600; color: #0b5c2e; }

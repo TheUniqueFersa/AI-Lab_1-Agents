@@ -1,0 +1,5 @@
+Put the images of the report here with EXACTLY these names (png). Until a file exists, the PDF shows a grey box with its name.
+fig_fleet_board.png, fig_agent_types.png, fig_sra_random.png, fig_gba_parity.png, fig_gba_target.png, fig_abaop_density.png,
+fig_app_menu.png, fig_app_game_desktop.png, fig_app_phone.png, fig_execution_flow.png
+The description of each one is in a comment (% FIGURE TODO ...) right above its place in main.tex.
+Regenerate tables/data after changing the CSVs in raw/:   python3 scripts/make_data.py

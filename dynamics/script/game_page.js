@@ -22,8 +22,16 @@ function crearTablero(contenedor, prefijoJugador, permiteClick, player, game){
             let m = player.map_grid_to_coord.get(player.stringyfyCoord(x, y));
             casilla.dataset.m = m;
             casilla.classList.add('interactiva');
+            // DESPUÉS
             casilla.addEventListener('click', function(){
-                game.human_shot(player, this.dataset.m);     // no inline colour any more (see point 3)
+                const sunk_before = player.stats.sunk.length;
+
+                game.human_shot(player, this.dataset.m);
+
+                if(player.stats.sunk.length > sunk_before){
+                    const [symbol] = player.stats.sunk[player.stats.sunk.length - 1];
+                    alert(`You sank a ${SHIPS.get(symbol)}!`);
+                }
             });
         }
         contenedor.appendChild(casilla);
